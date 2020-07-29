@@ -48,7 +48,6 @@ public class ContextualizedDependencyLookup implements ManagedComponent {
 ![timeline](http://picocontainer.com/images/ioc-timeline.png)
 
 ## 스프링에서의 IoC
-
 ```java
 public interface ApplicationContext extends EnvironmentCapable, ListableBeanFactory, HierarchicalBeanFactory, MessageSource, ApplicationEventPublisher, ResourcePatternResolver {
 	@Nullable
@@ -66,3 +65,9 @@ public interface ApplicationContext extends EnvironmentCapable, ListableBeanFact
 	AutowireCapableBeanFactory getAutowireCapableBeanFactory() throws IllegalStateException;
 }
 ```
+- 위 인터페이스의 구현체가 스프링의 IoC
+- 계층 구조를 지니며 자식 -> 부모 순으로 의존 객체를 탐색(양쪽 모두에 존재하면 자식 우선)
+- 자식 컨테이너의 객체가 부모 컨테이너의 객체를 의존 가능(루트는 당연히 하나로 온전해야 함)
+
+### BeanDefinition
+- Xml, Annotation, Pojo 로 정의 가능
