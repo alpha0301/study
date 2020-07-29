@@ -43,6 +43,10 @@ public class ContextualizedDependencyLookup implements ManagedComponent {
 ### Field Injection or Getter Injection when you need
 - IoC type 4
 
+### Timeline
+
+![timeline](http://picocontainer.com/images/ioc-timeline.png)
+
 ## 스프링에서의 IoC
 
 ```java
