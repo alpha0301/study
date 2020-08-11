@@ -1,0 +1,37 @@
+# 용도
+
+- 설정값 등을 저장하는 property 를 어플리케이션으로 가져오는 기능
+- String 외의 타입으로 변환도 제공(13가지)
+
+## 자동 변환 종류
+
+- byte[]
+- Charactor
+- Class
+- Boolean
+- List<String>
+- Date
+- Float
+- File
+- InputStream
+- Locale
+- Pattern
+- Properties
+- String (trim)
+- URL
+
+# 커스텀
+
+- 특정 클래스 타입으로 변환하고 싶을 때
+- PropertyEditorSupport 를 확장
+
+```java
+public class NamePropertyEditor extends PropertyEditorSupport {
+    // property 에 있는 parameter 가 만약 String 으로 표현할 수 없는 형태면 IllegalArgumentException 발생
+    @Override
+    public void setAsText(String text) throws IllegalArgumentException {
+        String[] name = text.split("\\s");
+        setValue(new FullName(name[0], name[1]));
+    }
+}
+```
