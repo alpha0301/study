@@ -28,7 +28,11 @@
   - flush 또는 commit 시 insert 발생
   - 많은 object 를 동시에 처리할 때 id 중복을 주의해야 함
 ```java
-// before
+
+Department dep1;
+Agent agent1;
+Agent agent2;
+
 @Before
 public void before() {
   dep1 = new Department("dep1");
@@ -36,33 +40,24 @@ public void before() {
   agent2 = new Agent("a2");
 }
 
+// @Transactional 생략
 @Test
 public void test() {
   agent1.setDepartment(dep1);
   agent2.setDepartment(dep1);
+  
   // 1. persist
-
   session.persist(agent1);
   session.persist(agent2); // duplicated error!
 
   // 2. save
-
   session.save(agent1);
   session.save(agent2); // work!
 }
-```
 
-```java
-// before
-@Before
-public void before() {
-  dep1 = new Department("dep1");
-  agent1 = new Agent("a1");
-  agent2 = new Agent("a2");
-}
-
+// @Transactional 생략
 @Test
-public void test() {
+public void test2() {
   session.persist(dep1);
   dep1 = session.find(Department.class, dep1.getId()); // dep1 <- get from persist instance!
 
