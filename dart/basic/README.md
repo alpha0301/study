@@ -52,3 +52,26 @@ void main() {
   something(); // error 마찬가지
 }
 ```
+
+
+# null 체크
+
+```dart
+String name = null;
+print(name?.length); // null
+print(name?.length ?? 'hongbeom'); // hongbeom
+```
+
+# annonymous function
+
+```dart
+(number) {
+  return number % 2 == 0;
+}
+```
+
+# lambda
+
+```dart
+(number) => number % 2 == 0;
+```
