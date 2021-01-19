@@ -76,3 +76,13 @@ class StandaloneApplication {
 ```
 
 [참고링크](https://stackoverflow.com/questions/47092029/difference-between-controller-and-routerfunction-in-spring-5-webflux)
+
+# 서블릿 문제점
+
+## 비동기를 달성하는데에 있어서 구조적인 문제점
+
+![구조도](https://res.infoq.com/news/2017/12/servlet-reactive-stack/en/resources/1Screen%20Shot%202017-11-30%20at%201.11.47%20PM-1512084132221.png)
+![서블릿흐름](https://res.infoq.com/news/2017/12/servlet-reactive-stack/en/resources/1Screen%20Shot%202017-11-30%20at%201.42.04%20PM-1512084132368.png)
+
+- Async Servlet 을 사용한다고 하더라도 Servlet API 구간에서 Blocking 이 발생함(절차형 구조로 설계되어있어서)
+- filter servlet 은 동기식이며, getParameter, getPart 와 같은 api 들은 blocking 임
