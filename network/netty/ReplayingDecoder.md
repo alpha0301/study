@@ -35,6 +35,9 @@ public class IntegerHeaderFrameDecoder extends ByteToMessageDecoder {
  }
 ```
 
+운영체제에서 사용자가 정의한 패킷 단위만큼 bytes 를 전달하는걸 보장하지 않으므로 코드로 원하는 만큼 데이터가 전달되었는지 확인이 필요합니다.
+일반적으로 원하는 만큼의 buffer 를 생성하여 readableBytes 를 체크하도록 작성합니다.
+
 ### ReplayingDecoder 인 경우
 
 ```java
@@ -49,13 +52,16 @@ public class IntegerHeaderFrameDecoder
  }
 ```
 
+굳이 직접 buffer 의 readableBytes 를 체크하지 않아도 ReplayingDecoder 에서 대신 처리해줍니다.
+다만 아래 동작 방식과 제약 사항에 대해 숙지하고 사용해야 합니다.
+
 ## 동작 방식
 
 - ReplayingDecoder 는 버퍼에 충분히 데이터가 쌓이지 않았을 때 정의된 에러를 던지도록 구현된 특수한 ByteBuf 를 사용함
 - 위 예제(IntegerHeaderFrameDecoder)에서 만약 buf에 4 bytes 가 없다면 에러를 생성하고 ReplayingDecoder 에서 buf 의 readerIndex 를 'initial' 위치로 되감음
 - 캐싱된 에러를 던지기 때문에 매번 에러를 생성하는 비용이 발생하지 않음
 
-## 제약
+## 제약 사항
 
 - 일부 버퍼 작업은 수행할 수 없음
 - 네트워크가 느리고 메시지가 복잡한 경우, 성능이 저하될 수 있음(운영체제가 충분한 bytes 를 보내지 않을 경우에 같은 메시지를 읽었다가 버리는 것을 반복할 수 있음)
