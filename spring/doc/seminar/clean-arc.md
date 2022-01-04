@@ -61,5 +61,8 @@ buckpal
                 └── UpdateAccountStatePort
 ``` 
 
-- 웹, 영속성 의존성 묶음 쉽게 격리 가능
-- 
+- 웹, 영속성 의존성 묶음 쉽게 격리 가능(adapter)
+- 서비스는 in 포트에 숨겨지므로 public 일 필요가 없음
+- DDD 개념에 직접적으로 대응 가능
+
+
