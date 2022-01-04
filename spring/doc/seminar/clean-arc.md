@@ -30,3 +30,47 @@ interface UserService extends CommonService {
 
 ![image](https://user-images.githubusercontent.com/39113923/148010285-3c05c7de-2d69-4d6b-bb05-ec5e9be3d61d.png)
 
+![image](https://user-images.githubusercontent.com/39113923/148011232-189d4203-92f8-476a-9cdd-325c9dc82f8f.png)
+
+- 영속성을 포함하여 변경 가능성이 높은 영역의 구현은 adapter 로 처리하고 접근은 유연하게 port interface
+- i/o 구간을 추상화하여 구조적으로 비동기 처리에도 유리함
+
+### 패키지 구조
+
+📦orderapp
+ ┗ 📂adapter
+   ┗ 📂out
+     ┗ 📂infrastructure
+       ┗ 📂persistence
+         ┣ 📜OrderRecordEntity.java
+         ┣ 📜OrderRecordRepository.java
+         ┗ 📜RecordOrderAdapter.java
+   ┗ 📂in
+     ┗ 📂presentation
+       ┣ 📜AdminReceiptController.java
+       ┣ 📜PhoneOrderController.java
+       ┣ 📜PhoneOrderResult.java
+       ┗ 📜WebOrderController.java
+ ┗ 📂application
+   ┗ 📂order
+     ┗ 📂port
+       ┗ 📂in
+         ┣ 📜GetReceiptUseCase.java
+         ┣ 📜OrderRequest.java
+         ┣ 📜OrderResult.java
+         ┣ 📜PlaceOrderUseCase.java
+         ┗ 📜ReceiptResult.java
+       ┗ 📂out
+         ┣ 📜GetOrderRecordPort.java
+         ┣ 📜OrderRecord.java
+         ┗ 📜RecordOrderPort.java
+     ┗ 📂service
+       ┣ 📜GetReceiptService.java
+       ┗ 📜PlaceOrderService.java
+ ┗ 📂domain
+   ┗ 📂order
+     ┣ 📜Order.java
+     ┗ 📜Receipt.java
+
+- 웹, 영속성 의존성 묶음 쉽게 격리 가능
+- 
