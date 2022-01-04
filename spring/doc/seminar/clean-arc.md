@@ -37,40 +37,29 @@ interface UserService extends CommonService {
 
 ### 패키지 구조
 
-📦orderapp
- ┗ 📂adapter
-   ┗ 📂out
-     ┗ 📂infrastructure
-       ┗ 📂persistence
-         ┣ 📜OrderRecordEntity.java
-         ┣ 📜OrderRecordRepository.java
-         ┗ 📜RecordOrderAdapter.java
-   ┗ 📂in
-     ┗ 📂presentation
-       ┣ 📜AdminReceiptController.java
-       ┣ 📜PhoneOrderController.java
-       ┣ 📜PhoneOrderResult.java
-       ┗ 📜WebOrderController.java
- ┗ 📂application
-   ┗ 📂order
-     ┗ 📂port
-       ┗ 📂in
-         ┣ 📜GetReceiptUseCase.java
-         ┣ 📜OrderRequest.java
-         ┣ 📜OrderResult.java
-         ┣ 📜PlaceOrderUseCase.java
-         ┗ 📜ReceiptResult.java
-       ┗ 📂out
-         ┣ 📜GetOrderRecordPort.java
-         ┣ 📜OrderRecord.java
-         ┗ 📜RecordOrderPort.java
-     ┗ 📂service
-       ┣ 📜GetReceiptService.java
-       ┗ 📜PlaceOrderService.java
- ┗ 📂domain
-   ┗ 📂order
-     ┣ 📜Order.java
-     ┗ 📜Receipt.java
+```bash
+buckpal
+└── account
+    ├── adapter
+    │   ├── in
+    │   │   └── web
+    │   │       └── AccountController
+    │   ├── out
+    │   │   └── persistence
+    │   │       ├── AccountPersistenceAdapter
+    │   │       └── SpringDataAccountRepository
+    ├── domain
+    │   ├── Account
+    │   └── Activity
+    └── application
+        ├── SendMoneyService
+        └── port
+            ├── in
+            │   └── SendMoneyUseCase
+            └── out
+                ├── LoadAccountPort
+                └── UpdateAccountStatePort
+``` 
 
 - 웹, 영속성 의존성 묶음 쉽게 격리 가능
 - 
