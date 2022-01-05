@@ -118,6 +118,8 @@ buckpal
 - Controller 는 전체 시스템 테스트, 어댑터들은 다 단위테스트가 쉽게 가능
 
 # 영속성 어댑터
+
+![image](https://user-images.githubusercontent.com/39113923/148153939-673042e1-dc04-4286-afc5-8adc7c2f7ff8.png)
   
 ## 책임
 
