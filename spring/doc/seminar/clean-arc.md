@@ -188,6 +188,9 @@ ex) SendMoneyServiceTest
 
 ![image](http://www.plantuml.com/plantuml/png/TP5H2eCm44J_Smelu0tweVXT4CG3B74AGhgHtRLGwE4hRIYDcj-PdNsPRAD6OkizE1z8jMgzZojR5zaaXW1nCnlaHXxL09wkaV4S5HqfKkGd3v37xF6N69U936ddO6JeerYEwY4wgu4zseaMW-I-StjkTNdLzH5x3liEbrd7vMay_uMaVDnz93CBbKkFEolYNBD9sqtU)
 
+![image](https://user-images.githubusercontent.com/39113923/148151926-863d0670-bea2-4dca-b0b0-6934d8b08e3f.png)
+
+
 - 웹, 영속성 관련 의존성을 하나의 모델에서 모두 처리해야 함
 - 아주 간단한 CRUD 작성 시에는 효과적일 수 있음
 - 나중에 필요할 때 얼마든지 매핑 전략을 바꿀 수 있으므로 기계적으로 매핑하는 습관에 대해 고민해봐야
@@ -195,6 +198,9 @@ ex) SendMoneyServiceTest
 ## 양방향 매핑
 
 ![image](http://www.plantuml.com/plantuml/png/ZP312eCm44Jl-Gf_87_GW-9P44HwJfCf274ZkskXq8_leL9YDT1hPYRpTcfHnxhEqVZeHAh6-xIIjecKKunWCv62xywZ6a2XIuJdA6YTO8jydmVmO_B84kCId6BxSr2dw1Fhlge7ooGAycY2MnIyrutvxQqkrfw07cqlQuzqvqmVSncfb3fhs5p_YJbnBfQsk-BMfO1O6253pssbisfGMEVu1W00)
+
+![image](https://user-images.githubusercontent.com/39113923/148151970-0f8e915b-d2d1-4e2b-b39a-35933c6d3a98.png)
+
 
 - 매핑하지 않는 전략 만큼 명확
 - 웹 모델, UseCase 도메인, 영속성 모델
@@ -207,6 +213,8 @@ ex) SendMoneyServiceTest
 
 ![image](http://www.plantuml.com/plantuml/png/TP11QiOW48NtdY8Ny0PT96GT28JGzLHV8Q1Z62U5GW_VHQMOFxeTl-VxPiQi97h5O5oWd8V9kNInpebLKWWGSx12FibXsC1-IOplFMEcZ1Bv7s-GhyEXIkod9qNvSrDIh4dqNhL2yf4Lx31vEXLoVpVcjNTuixOX-iH-h7tQjPt-uBvIBzLeg8Jd52Enls55hoLIuvtJbK6x-1qVI_88dGDLQpsmnieZs5yn_080)
 
+![image](https://user-images.githubusercontent.com/39113923/148151997-4f7e8180-e704-4478-904b-d430ec9dfeeb.png)
+
 - 양방향 매핑 + 입출력 시 별도의 모델(Command)
 - ex) 유효성 검증
 - 전역으로 적용하지 말고 필요에 따라 사용하는 것이 중요
@@ -215,6 +223,8 @@ ex) SendMoneyServiceTest
 ## 단방향 매핑 전략
 
 ![image](http://www.plantuml.com/plantuml/png/TP512eCm54JtEOKNo0swK5mBWaZNQJ858IRoyoqKUlYMOaiqtsrc_imRKYSsnElibVKcfQgnDgw1snYOelSWDGK6tOr5DI2uBWOynuJM96md_-S1z9WiiejnSOQnPGvi67qatbVre3GbHh1ed5aOjDUpk3n8gIDETT5Qu2zjBwrBQ1drQpudFRsI6ZQNB5vnwwA3FncHLHSs0Ii7saquA1-X-DJ28MyKEduR1Ed8hse4jyx-3G00)
+
+![image](https://user-images.githubusercontent.com/39113923/148152028-dd443f1a-d953-492a-9bf3-fed9b59ebcd1.png)
 
 - 모델에 대한 interface(보통 State 로 많이 표현)
 - 각 계층의 의존성이 필요할 때가 아니면 getter 만 노출(getter 안에서 코딩하는 사람도 있는데...)
