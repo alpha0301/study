@@ -194,7 +194,7 @@ ex) SendMoneyServiceTest
 
 ## 양방향 매핑
 
-![image](plantuml.com/plantuml/png/TP712eCm44Jl-Gf_m3_eGV4i228zfyaKX7GZkskXq8-lq51YDTVCxBpTIIDgMTT7C2vOaQfrBgwaNIJb60BOpAJWktMeHf3l8-4r2JehI2E_vn7yd1soYMdnLf4oHxMA8RBkKGDOPb6GG-ljek2zRim_jxgyw_g8FOTzpMNMCNop7rieXPyjOf9jhwRyN2prSyMjZnwXi4jsHMuhNTY0_FR17m00)
+![image](http://www.plantuml.com/plantuml/png/ZP312eCm44Jl-Gf_87_GW-9P44HwJfCf274ZkskXq8_leL9YDT1hPYRpTcfHnxhEqVZeHAh6-xIIjecKKunWCv62xywZ6a2XIuJdA6YTO8jydmVmO_B84kCId6BxSr2dw1Fhlge7ooGAycY2MnIyrutvxQqkrfw07cqlQuzqvqmVSncfb3fhs5p_YJbnBfQsk-BMfO1O6253pssbisfGMEVu1W00)
 
 - 매핑하지 않는 전략 만큼 명확
 - 웹 모델, UseCase 도메인, 영속성 모델
