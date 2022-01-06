@@ -50,4 +50,16 @@
 
 ![image](https://user-images.githubusercontent.com/39113923/148327484-4eb9d660-4721-4b6d-817e-52f0f01611ce.png)
 
+## SCHEMA
+
+### OpenAPI Object
+
+- 루트 문서의 오브젝트
+- semantic version number 형태의 버전 정보
+- API 에 대한 metadata
+- host(array), path(http method, resp 등 구체적인 사항이 포함된 operation)
+- components: 재사용 가능한 공통 입출력 데이터 유형, 응답 유형, 쿼리 파라미터, 예제 등의 실질적인 비즈니스 규칙(operatioin 영역에서 불러다 씀)
+- security: API 전역 보안 메커니즘(api key, auth...)
+
+[자세한 내용은 공홈 링크 참고](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.1.md)
 
