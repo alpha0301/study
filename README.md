@@ -8,3 +8,7 @@
 - swagger
 - restdocs(with MockMvc)
 - asciidoc
+
+### 용어
+
+- SI, SM 용어들(GA, AS IS, TO BE...)
