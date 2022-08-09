@@ -5,7 +5,23 @@
 - HttpHandler: 다양한 http servers에 대한 handler 추상화
 - WebHandler: 웹 어플리케이션에서 사용하는 광범위한 기능들을 제공
 
+# Functional Endpoint
+
+## HandlerFunction
+
+- @RequestMapping에 대응되는 function
+- ServerRequest -> Mono\<ServerResponse\>(delayed ServerResponse)
+- request body는 Flux, Mono를 포함한 모든 Reactive Streams Publisher로 표현됨
+
+## RouterFunction
+
+- @RequestMapping + behavior
+- Incoming request -> Mono\<HandlerFunction\>
+- 매칭되는 RouterFunction이 있으면 HandlerFunction이 반환됨(else return empty Mono)
+
 # DispatcherHandler
+
+예전 방식
 
 - front controller pattern
 - Spring Configuration을 바탕으로 delegate components를 찾음
