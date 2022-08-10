@@ -48,6 +48,21 @@ RouterFunction<ServerResponse> route = RouterFunctions.route(
     );
 ```
 
+### Routes
+
+- router function들은 등록된 순서대로 비교해서 선택되기 때문에 구체적으로 명세한 것 부터 등록해야 의도하지 않은 선택이 발생하는 것을 피할 수 있음
+- router function들을 Spring bean으로 등록할 때에도 동일하게 중요함
+- annotation-based(예전 방식)에서는 순서와 관계 없이 구체적으로 명세한 메소드가 자동으로 선택됨
+
+### Nested Routes
+
+- predicate의 파라미터로 predicate를 넣어서 중첩해서 사용할 수 있음
+- 재활용 가능
+
+```java
+
+```
+
 # DispatcherHandler
 
 예전 방식
