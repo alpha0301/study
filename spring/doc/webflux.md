@@ -18,6 +18,35 @@
 - @RequestMapping + behavior
 - Incoming request -> Mono\<HandlerFunction\>
 - 매칭되는 RouterFunction이 있으면 HandlerFunction이 반환됨(else return empty Mono)
+- 일반적으로는 따로 구현하지 않고 RouterFunction 내의 static 유틸 메소드를 사용해서 생성함
+
+### Predicates
+
+- 분기 처리는 router 내에 parameter 형식에 따라 동작이 바뀔 수 있도록 overload 로 구현되어 있음
+- 분기 종류
+  - request path
+  - http method
+  - content-type
+  - etc
+
+```java
+RouterFunction<ServerResponse> route = RouterFunctions.route()
+  .GET("/hello-world"), accept(MediaType.TEXT_PLAIN), // GET 메소드, hello-world path, MediaType 으로 각각 분기 처리되고 있음
+    request -> ServerResponse.ok().bodyValue("Hello World")).build();
+```
+
+- 분기를 여러 개 조합하는 경우
+  - RequestPredicate.and(RequestPredicate)
+  - RequestPredicate.or(RequestPredicate)
+
+```java
+RouterFunction<ServerResponse> route = RouterFunctions.route(
+            RequestPredicates.GET("/hello").or(RequestPredicates.GET("/world"))
+                    .and(RequestPredicates.accept(MediaType.APPLICATION_JSON)),
+            request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromValue("hello world"))
+    );
+```
 
 # DispatcherHandler
 
