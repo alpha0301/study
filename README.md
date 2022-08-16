@@ -10,3 +10,5 @@
 - RDBMS isolation level
 - @Transaction, @Async
 - MSA SAGA 
+- GC 종류별 특징 등..
+- 추억의 ACID
