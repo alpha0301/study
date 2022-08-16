@@ -12,3 +12,4 @@
 - MSA SAGA 
 - GC 종류별 특징 등..
 - 추억의 ACID
+- CORS 관련 새로운 정책들
