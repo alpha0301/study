@@ -66,6 +66,8 @@ static void expectSkylerJesseComplete() {
 - subscribe의 결과로 발생한 데이터들을 모아서 Flux화
 - 순서 보장이 안됨
 
+![image](https://user-images.githubusercontent.com/39113923/185051951-aff99eed-185e-463b-a08d-d45307fd054c.png)
+
 ```java
 Mono<String> toUpperCaseSync(Mono<String> str) {
     return str.map(String::toUpperCase);
