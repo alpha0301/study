@@ -55,10 +55,6 @@ static void expectSkylerJesseComplete() {
 - 웹서비스에서 호출되는 API는 동기적인 operator를 사용할 수 없음(ex: map)
 - flaMap과 같은 비동기 operator를 사용해야 함
 
-```java
-
-```
-
 ### flatMap
 
 - 각 element들을 비동기적으로 Publisher로 변환
@@ -67,6 +63,8 @@ static void expectSkylerJesseComplete() {
 - 순서 보장이 안됨
 
 ![image](https://user-images.githubusercontent.com/39113923/185051951-aff99eed-185e-463b-a08d-d45307fd054c.png)
+
+![image](https://user-images.githubusercontent.com/39113923/185052154-eda14d38-5c37-4486-ba3f-a86f92e4db0e.png)
 
 ```java
 Mono<String> toUpperCaseSync(Mono<String> str) {
@@ -85,3 +83,44 @@ Flux<String> toUpperCasesAsync(Flux<String> strs) {
     return strs.flatMap(s -> Mono.just(s.toUpperCase()));
 }
 ```
+
+## Merge
+
+- 여러 개의 Publisher를 모아서 Flux 하나를 만드는 것
+
+```java
+Flux<String> merge(Flux<String> f1, Flux<String> f2) {
+    return f1.mergeWith(f2);
+}
+
+Flux<String> merge(Mono<String> m1, Mono<String> m2) {
+    return m1.mergeWith(m2);
+}
+```
+
+위와 같이 하면 순서 보장이 되지 않음 순서를 보장하려면,
+
+```java
+Flux<String> keepTheOrder(Flux<String> f1, Flux<String> f2) {
+    return f1.concatWith(f2);
+}
+
+Flux<String> keepTheOrder(Mono<String> m1, Mono<String> m2) {
+    return m1.concatWith(m2);
+}
+```
+
+concatWith를 사용하면 됨
+
+## Request
+
+### Backpressure(Volume Control)
+
+![image](https://user-images.githubusercontent.com/39113923/185055859-9faf198a-bea0-4b08-a412-77c1c61d1f7f.png)
+
+- Subscriber가 Publisher에게 받고자 하는 event의 양을 알리는 것
+- Subscription level에서 처리됨(Subscription.request() 으로 알림)
+- Subscription lifecycle
+  - 1. Publisher.subscribe() -> Subscriber 생성
+  - 2. Subscriber.onSubscribe() -> Subscription 생성
+  - 3. 
