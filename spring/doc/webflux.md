@@ -109,6 +109,29 @@ RouterFunction<ServerResponse> route = route()
     .build();
 ```
 - 위 예시에서 before는 두 개의 GET에 적용
+- 위 예시에서 after는 모든 route들에 적용(nested 포함)
+
+```java
+SecurityManager securityManager = ...
+
+RouterFunction<ServerResponse> route = route()
+    .path("/person", b1 -> b1
+        .nest(accept(APPLICATION_JSON), b2 -> b2
+            .GET("/{id}", handler::getPerson)
+            .GET(handler::listPeople))
+        .POST(handler::createPerson))
+    .filter((request, next) -> {
+        if (securityManager.allowAccessTo(request.path())) {
+            return next.handle(request);
+        }
+        else {
+            return ServerResponse.status(UNAUTHORIZED).build();
+        }
+    })
+    .build();
+```
+
+- filter를 통해 다음 handler function으로 전달하거나 곧바로 ServerResponse를 반환할 수 있음
 
 # DispatcherHandler
 
