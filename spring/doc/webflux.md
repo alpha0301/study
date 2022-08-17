@@ -60,8 +60,55 @@ RouterFunction<ServerResponse> route = RouterFunctions.route(
 - 재활용 가능
 
 ```java
-
+RouterFunction<ServerResponse> route = route()
+    .path("/person", builder -> builder
+        .GET("/{id}", accept(APPLICATION_JSON), handler::getPerson)
+        .GET(accept(APPLICATION_JSON), handler::listPeople)
+        .POST(handler::createPerson))
+    .build();
 ```
+
+accept-header predicate 중복을 제거하면,
+
+```java
+RouterFunction<ServerResponse> route = route()
+    .path("/person", b1 -> b1
+        .nest(accept(APPLICATION_JSON), b2 -> b2
+            .GET("/{id}", handler::getPerson)
+            .GET(handler::listPeople))
+        .POST(handler::createPerson))
+    .build();
+```
+
+### Http server initialize
+
+- WebFlux Config를 사용하지 않는 경우: RouterFunctions.toHttpHandler(routerFunction, handlerStrategies)
+- WebFlux Config
+  - DispatcherHandler-based setup
+    - 1. RouterFunctionMapping: RouterFunction\<?\> beans
+    - 2. HandlerFunctionAdapter : DispatcherHandler가 request에 알맞는 HandlerFunction을 호출할 수 있도록 해줌
+    - 3. ServerResponseResultHandler : HandlerFunction의 호출 결과를 ServerResponse.writeTo 로 처리
+  - 위 3요소는 functional endpoint들이 DispatcherHandler의 request 처리 lifecycle에 맞도록 하고 annotated controller들과 나란히 실행되도록 함
+  - WebFlux starter가 functional endpoint들을 활성화하는 방법이기도 함
+
+### Filtering Handler Functions
+
+- before, after를 설정할 수 있음
+
+```java
+RouterFunction<ServerResponse> route = route()
+    .path("/person", b1 -> b1
+        .nest(accept(APPLICATION_JSON), b2 -> b2
+            .GET("/{id}", handler::getPerson)
+            .GET(handler::listPeople)
+            .before(request -> ServerRequest.from(request)
+                .header("X-RequestHeader", "Value")
+                .build()))
+        .POST(handler::createPerson))
+    .after((request, response) -> logResponse(response))
+    .build();
+```
+- 위 예시에서 before는 두 개의 GET에 적용
 
 # DispatcherHandler
 
