@@ -1,5 +1,11 @@
 # Reactor 3
 
+## 개요
+
+- 비동기 프로그래밍 패러다임
+- data streams, propagation of change에 초점을 맞추고 있음
+- 선언형이므로 개발자는 흐름을 제어하는 것이 아니라 논리에 대한 연산을 표현해야 함
+
 ## Flux
 
 - Reactive Streams Publisher
