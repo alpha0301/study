@@ -5,6 +5,38 @@
 - 비동기 프로그래밍 패러다임
 - data streams, propagation of change에 초점을 맞추고 있음
 - 선언형이므로 개발자는 흐름을 제어하는 것이 아니라 논리에 대한 연산을 표현해야 함
+- non-blocking, backpressure를 이용하여 비동기 스트림 처리의 표준을 제공하는 것이 목적
+
+## Spec
+
+```java
+// 생산자는 구독자를 받아들인다
+public interface Publisher<T> {
+    public void subscribe(Subscriber<? super T> s);
+}
+
+// 구독자는 구독 정보를 등록하고 구독 정보를 통해 얻는 신호(onNext, onError, onComplete)에 따라 동작
+public interface Subscriber<T> {
+    public void onSubscribe(Subscription s);
+    public void onNext(T t);
+    public void onError(Throwable t);
+    public void onComplete();
+}
+
+// 생산자와 구독자간의 데이터 요청 횟수를 관리
+public interface Subscription {
+    public void request(long n);
+    public void cancel();
+}
+```
+
+![image](https://user-images.githubusercontent.com/39113923/185822071-766ad9bb-c3bc-4235-85e9-cf4353924d8a.png)
+
+1. Publisher는 Subscription을 구현하고 data 생성
+1. Publisher는 subscribe(Subscriber)를 통해 Subscriber를 등록
+1. Subscriber.onSubscribe(Subscription)를 통해 Subscription (Publisher - Subscription - Subscriber)
+1. Subscription.request()를 통해 data 구독 시작
+1. 
 
 ## Flux
 
