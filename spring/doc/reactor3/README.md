@@ -343,16 +343,3 @@ Flux<String> keepTheOrder(Mono<String> m1, Mono<String> m2) {
 ```
 
 concatWith를 사용하면 됨
-
-## Request
-
-### Backpressure(Volume Control)
-
-![image](https://user-images.githubusercontent.com/39113923/185055859-9faf198a-bea0-4b08-a412-77c1c61d1f7f.png)
-
-- Subscriber가 Publisher에게 받고자 하는 event의 양을 알리는 것
-- Subscription level에서 처리됨(Subscription.request() 으로 알림)
-- Subscription lifecycle
-  - 1. Publisher.subscribe() -> Subscriber 생성
-  - 2. Subscriber.onSubscribe() -> Subscription 생성
-  - 3. 
