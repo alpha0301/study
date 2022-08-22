@@ -7,7 +7,19 @@
 - 선언형이므로 개발자는 흐름을 제어하는 것이 아니라 논리에 대한 연산을 표현해야 함
 - non-blocking, backpressure를 이용하여 비동기 스트림 처리의 표준을 제공하는 것이 목적
 
+## 용어
+
+- reactor operator
+  - 메소드로 제공됨
+  - just, fromArray, range, empty, error
+  - never: 아무것도 안하는 경우
+  - defer: subscription 시 결정
+  - generator: 동기적으로 하나씩
+  - create: 비동기적으로 한번에 여러개 생성
+- concurrent agnostic: 동시성 불가지론적
 ## Spec
+
+### java 9 flow api
 
 ```java
 // 생산자는 구독자를 받아들인다
@@ -33,10 +45,192 @@ public interface Subscription {
 ![image](https://user-images.githubusercontent.com/39113923/185822071-766ad9bb-c3bc-4235-85e9-cf4353924d8a.png)
 
 1. Publisher는 Subscription을 구현하고 data 생성
-1. Publisher는 subscribe(Subscriber)를 통해 Subscriber를 등록
-1. Subscriber.onSubscribe(Subscription)를 통해 Subscription (Publisher - Subscription - Subscriber)
-1. Subscription.request()를 통해 data 구독 시작
-1. 
+2. Publisher는 subscribe(Subscriber)를 통해 Subscriber를 등록
+3. Subscriber.onSubscribe(Subscription)를 통해 Subscription (Publisher - Subscription - Subscriber)
+4. Subscription.request()를 통해 data 구독 시작
+5. Subscripiton.request()는 조건에 따라 onNext(), onError(), onComplete() 호출
+
+## Schedule
+
+- 기본적으로 동시성을 강요하지 않으며 이전 operator를 실행한 Thread가 그대로 operator를 수행
+
+### Non concurrent/parallel execution
+
+```java
+Logger logger = LoggerFactory.getLogger(MyApplication.class);
+
+Mono.defer(() -> Mono.just("Hello!"))
+        .doOnNext(logger::info)
+        .subscribe();
+```
+
+```
+22:06:15.235 [main] DEBUG reactor.util.Loggers$LoggerFactory - Using Slf4j logging framework
+22:06:19.841 [main] INFO MyApplication - Hello!
+```
+
+### Parallel execution
+
+- WebFlux 사용 시 reactor operator 실행 기본 스케쥴 설정과 동일
+
+```java
+Logger logger = LoggerFactory.getLogger(MyApplication.class);
+
+Mono.defer(() -> Mono.just("Hello!"))
+        .doOnNext(logger::info)
+        .doOnTerminate(latch::countDown)
+        .subscribeOn(Schedulers.elastic())
+        .subscribe();
+
+latch.await();
+```
+
+```
+22:11:26.704 [main] DEBUG reactor.util.Loggers$LoggerFactory - Using Slf4j logging framework
+22:11:26.733 [elastic-2] INFO MyApplication - Hello!
+```
+
+### reactor operator 동작 순서 이해
+
+```java
+Flux.range(1, 4)
+        .log()
+        .map(i -> i * 10)
+        .log()
+        .map(i -> "num: " + i)
+        .log()
+        .subscribe();
+```
+
+```
+INFO 66019 --- [main] reactor.Flux.MapFuseable.35              : | request(unbounded)
+INFO 66019 --- [main] reactor.Flux.MapFuseable.34              : | request(unbounded)
+INFO 66019 --- [main] reactor.Flux.Range.33                    : | request(unbounded)
+INFO 66019 --- [main] reactor.Flux.Range.33                    : | onNext(1)
+INFO 66019 --- [main] reactor.Flux.MapFuseable.34              : | onNext(10)
+INFO 66019 --- [main] reactor.Flux.MapFuseable.35              : | onNext(num: 10)
+INFO 66019 --- [main] reactor.Flux.Range.33                    : | onNext(2)
+INFO 66019 --- [main] reactor.Flux.MapFuseable.34              : | onNext(20)
+INFO 66019 --- [main] reactor.Flux.MapFuseable.35              : | onNext(num: 20)
+INFO 66019 --- [main] reactor.Flux.Range.33                    : | onNext(3)
+INFO 66019 --- [main] reactor.Flux.MapFuseable.34              : | onNext(30)
+INFO 66019 --- [main] reactor.Flux.MapFuseable.35              : | onNext(num: 30)
+INFO 66019 --- [main] reactor.Flux.Range.33                    : | onNext(4)
+INFO 66019 --- [main] reactor.Flux.MapFuseable.34              : | onNext(40)
+INFO 66019 --- [main] reactor.Flux.MapFuseable.35              : | onNext(num: 40)
+INFO 66019 --- [main] reactor.Flux.Range.33                    : | onComplete()
+INFO 66019 --- [main] reactor.Flux.MapFuseable.34              : | onComplete()
+INFO 66019 --- [main] reactor.Flux.MapFuseable.35              : | onComplete()
+```
+
+- map 단위로 동작하지 않고 개별 데이터 단위로 동작
+
+```java
+Flux.range(1, 4)
+        .publishOn(Schedulers.newSingle("pub1"))
+        .log()
+        .map(i -> i * 10)
+        .log()
+        .map(i -> "num: " + i)
+        .log()
+        .subscribe();
+```
+
+```
+INFO 66019 --- [restartedMain] reactor.Flux.MapFuseable.38              : | request(unbounded)
+INFO 66019 --- [restartedMain] reactor.Flux.MapFuseable.37              : | request(unbounded)
+INFO 66019 --- [restartedMain] reactor.Flux.PublishOn.36                : | request(unbounded)
+INFO 66019 --- [pub1-45] reactor.Flux.PublishOn.36                : | onNext(1)
+INFO 66019 --- [pub1-45] reactor.Flux.MapFuseable.37              : | onNext(10)
+INFO 66019 --- [pub1-45] reactor.Flux.MapFuseable.38              : | onNext(num: 10)
+INFO 66019 --- [pub1-45] reactor.Flux.PublishOn.36                : | onNext(2)
+INFO 66019 --- [pub1-45] reactor.Flux.MapFuseable.37              : | onNext(20)
+INFO 66019 --- [pub1-45] reactor.Flux.MapFuseable.38              : | onNext(num: 20)
+INFO 66019 --- [pub1-45] reactor.Flux.PublishOn.36                : | onNext(3)
+INFO 66019 --- [pub1-45] reactor.Flux.MapFuseable.37              : | onNext(30)
+INFO 66019 --- [pub1-45] reactor.Flux.MapFuseable.38              : | onNext(num: 30)
+INFO 66019 --- [pub1-45] reactor.Flux.PublishOn.36                : | onNext(4)
+INFO 66019 --- [pub1-45] reactor.Flux.MapFuseable.37              : | onNext(40)
+INFO 66019 --- [pub1-45] reactor.Flux.MapFuseable.38              : | onNext(num: 40)
+INFO 66019 --- [pub1-45] reactor.Flux.PublishOn.36                : | onComplete()
+INFO 66019 --- [pub1-45] reactor.Flux.MapFuseable.37              : | onComplete()
+INFO 66019 --- [pub1-45] reactor.Flux.MapFuseable.38              : | onComplete()
+```
+
+```java
+Flux.range(1, 4)
+        .publishOn(Schedulers.newSingle("pub1"))
+        .publishOn(Schedulers.newSingle("pub2"))
+        .log()
+        .map(i -> i * 10)
+        .log()
+        .map(i -> "num: " + i)
+        .log()
+        .subscribe();
+```
+
+```
+INFO 68914 --- [restartedMain] reactor.Flux.MapFuseable.18              : | request(unbounded)
+INFO 68914 --- [restartedMain] reactor.Flux.MapFuseable.17              : | request(unbounded)
+INFO 68914 --- [restartedMain] reactor.Flux.PublishOn.16                : | request(unbounded)
+INFO 68914 --- [pub2-17] reactor.Flux.PublishOn.16                : | onNext(1)
+INFO 68914 --- [pub2-17] reactor.Flux.MapFuseable.17              : | onNext(10)
+INFO 68914 --- [pub2-17] reactor.Flux.MapFuseable.18              : | onNext(num: 10)
+INFO 68914 --- [pub2-17] reactor.Flux.PublishOn.16                : | onNext(2)
+INFO 68914 --- [pub2-17] reactor.Flux.MapFuseable.17              : | onNext(20)
+INFO 68914 --- [pub2-17] reactor.Flux.MapFuseable.18              : | onNext(num: 20)
+INFO 68914 --- [pub2-17] reactor.Flux.PublishOn.16                : | onNext(3)
+INFO 68914 --- [pub2-17] reactor.Flux.MapFuseable.17              : | onNext(30)
+INFO 68914 --- [pub2-17] reactor.Flux.MapFuseable.18              : | onNext(num: 30)
+INFO 68914 --- [pub2-17] reactor.Flux.PublishOn.16                : | onNext(4)
+INFO 68914 --- [pub2-17] reactor.Flux.MapFuseable.17              : | onNext(40)
+INFO 68914 --- [pub2-17] reactor.Flux.MapFuseable.18              : | onNext(num: 40)
+INFO 68914 --- [pub2-17] reactor.Flux.PublishOn.16                : | onComplete()
+INFO 68914 --- [pub2-17] reactor.Flux.MapFuseable.17              : | onComplete()
+INFO 68914 --- [pub2-17] reactor.Flux.MapFuseable.18              : | onComplete()
+```
+
+- publishOn이 겹쳐지면 마지막으로 호출된 스케쥴로 설정됨
+
+```java
+Flux.range(1, 4)
+        .subscribeOn(Schedulers.newSingle("sub1"))
+        .subscribeOn(Schedulers.newSingle("sub2"))
+        .log()
+        .map(i -> i * 10)
+        .log()
+        .map(i -> "num: " + i)
+        .log()
+        .subscribe();
+```
+
+```
+INFO 68914 --- [sub1-20] reactor.Flux.SubscribeOn.19              : onNext(1)
+INFO 68914 --- [sub1-20] reactor.Flux.Map.20                      : onNext(10)
+INFO 68914 --- [sub1-20] reactor.Flux.Map.21                      : onNext(num: 10)
+INFO 68914 --- [sub1-20] reactor.Flux.SubscribeOn.19              : onNext(2)
+INFO 68914 --- [sub1-20] reactor.Flux.Map.20                      : onNext(20)
+INFO 68914 --- [sub1-20] reactor.Flux.Map.21                      : onNext(num: 20)
+INFO 68914 --- [sub1-20] reactor.Flux.SubscribeOn.19              : onNext(3)
+INFO 68914 --- [sub1-20] reactor.Flux.Map.20                      : onNext(30)
+INFO 68914 --- [sub1-20] reactor.Flux.Map.21                      : onNext(num: 30)
+INFO 68914 --- [sub1-20] reactor.Flux.SubscribeOn.19              : onNext(4)
+INFO 68914 --- [sub1-20] reactor.Flux.Map.20                      : onNext(40)
+INFO 68914 --- [sub1-20] reactor.Flux.Map.21                      : onNext(num: 40)
+INFO 68914 --- [sub1-20] reactor.Flux.SubscribeOn.19              : onComplete()
+INFO 68914 --- [sub1-20] reactor.Flux.Map.20                      : onComplete()
+INFO 68914 --- [sub1-20] reactor.Flux.Map.21                      : onComplete()
+```
+
+- subscribeOn은 중복을 무시하고 가장 먼저 등록한 스케쥴로 설정됨
+
+### PublishOn
+
+- 신호 처리 스케쥴링
+
+### SubscribeOn
+
+- 시퀀스를 실행할 스레드를 결정
 
 ## Flux
 
