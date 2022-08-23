@@ -50,9 +50,86 @@ public interface Subscription {
 4. Subscription.request()를 통해 data 구독 시작
 5. Subscripiton.request()는 조건에 따라 onNext(), onError(), onComplete() 호출
 
-## Schedule
+## Threading Model
 
 - 기본적으로 동시성을 강요하지 않으며 이전 operator를 실행한 Thread가 그대로 operator를 수행
+- Scheduler를 통해 Threading에 대한 제어를 할 수 있음
+
+### Scheduler
+
+- Thread를 통해 Worker를 생성할 수 있지만 반드시 Thread의 지원을 받아야 하는 것은 아님
+- Worker, Time에 대한 책임을 갖고 있음
+- 일반적인 사용예
+  - Schedulers.immediate(): Scheduler가 필요하지만 Thread를 변경하지 않으려는 경우(현재 Thread가 즉시 수행)
+  - Schedulers.single(): 짧은 일회성 작업에 최적화되어 있으며 Runnable을 사용
+  - Schedulers.parallel(): CPU를 많이 사용하지만 lifecycle이 짧은 작업에 적합
+  - Schedulers.boundedElastic(): lifecycle이 긴 작업에 적합하므로 일반적으로 블로킹 작업에 할당
+  - Schedulers.elastic(): (Deprecated) boundedElastic()과 같은 용도지만 on-demand 형태로, Thread의 수가 무한정 증가할 수 있음(TTL 존재)
+- 기본 제공되는 Scheduler들은 전역 싱글턴 형태지만, Schedulers.newParallel("parallel-1", 10)과 같이 새로운 인스턴스를 생성할 수도 있음
+- ※ 작업을 수행할 Thread를 변경할 때 main thread -> scheduler 는 가능하지만, 임의의 thread -> main thread 는 불가능함(MainThreadExecutorService가 없기 때문)
+
+#### VirtualTimeScheduler
+
+- 긴 지연시간을 통해 반복하는 코드를 테스트한다고 가정할 떄 유용
+
+```javascript
+getData(timeSec) {
+  return this.http.get('some_url')
+    .pipe(
+      repeatWhen((n) => n.pipe(
+            delay(timeSec * 1000),
+            take(2)
+        ))
+    );
+}
+```
+
+http.get 호출을 성공하면 동일한 작업을 2회에 걸쳐서 반복하는 코드입니다. 반복 호출 사이에는 지정된 시간의 간격이 정해져 있습니다.
+
+```javascript
+it('should emit 3 specific values', (done) => {
+  const range$ = service.getData(0.01);
+  const result = [];
+  mockHttp = {get: () => of(42, asyncScheduler)};
+
+  range$.subscribe({
+    next: (value) => {
+      result.push(value);
+    },
+    complete: () => {
+      expect(result).toEqual([42, 42, 42]);
+      done();
+    }
+  });
+});
+```
+
+jasmin done callback library를 사용해서 3번의 response가 complete 단계에서 모두 도착했는지 테스트를 하고 있습니다.
+이런 count down latch 방식은 지연시간이 매우 길 경우에 테스트가 너무 오래 걸릴 수 있거나 예상하기 어렵습니다.
+
+VirtualTimeScheduler는 가상 시간 매커니즘을 통해 스케쥴러 내에서 경과된 시간을 에뮬레이션하여 작업이 즉시 실행되도록 할 수 있습니다.
+(real interval 세팅을 막고 각 작업을 queue에 넣고 delay를 기준으로 정렬 후 flush할 때 순서대로 실행)
+
+java에서는 StepVerifier라는 VirtualTimeScheduler 제공 라이브러리가 있습니다.(reactor-test에 포함)
+
+```java
+void expect3600Elements(Supplier<Flux<Long>> supplier) {
+  StepVerifier.withVirtualTime(supplier)
+          .thenAwait(Duration.ofSeconds(3600)) // 3,600 초가 지났다고 간주함
+          .expectNextCount(3600)
+          .verifyComplete();
+}
+```
+
+```java
+StepVerifier.withVirtualTime(() -> Mono.delay(Duration.ofHours(3)))
+        .expectSubscription()
+        .expectNoEvent(Duration.ofHours(2)) // 2 시간동안 이벤트가 없고,
+        .thenAwait(Duration.ofHours(1))     // 1 시간동안
+        .expectNextCount(1)                 // 1 번의 이벤트가 발생 한 뒤
+        .expectComplete()                   // 종료됨
+        .verify();
+```
 
 ### Non concurrent/parallel execution
 
@@ -226,11 +303,45 @@ INFO 68914 --- [sub1-20] reactor.Flux.Map.21                      : onComplete()
 
 ### PublishOn
 
-- 신호 처리 스케쥴링
+- upstream -> downstream
+- 데이터 경로를 지나는 도중에 적용
+- Thread를 도약할 때(hop) 필요한 기본 연산자
+- 다른 publishOn이 나타나기 전 까지 지정한 Scheduler에서 실행함
+- onNext, onComplete, onError
 
 ### SubscribeOn
 
-- 시퀀스를 실행할 스레드를 결정
+- downstream -> upstream
+- subscribe() 호출 직후에 초기화하면서 적용
+- 신호가 위쪽으로 흐르기 때문에 Publisher가 데이터를 생성하기 시작하는 위치에 직접적인 영향을 줌
+
+```java
+Flux.just("hello")                                                                           // 3.
+    .doOnNext(v -> System.out.println("just " + Thread.currentThread().getName()))           // 4.
+    .publishOn(Scheduler.boundedElastic())                                                   // 5.
+    .doOnNext(v -> System.out.println("publish " + Thread.currentThread().getName()))        // 6.
+    .delayElements(Duration.ofMillis(500))                                                   // 7.
+    .subscribeOn(Schedulers.elastic())                                                       // 2. 8.
+    .subscribe(v -> System.out.println(v + " delayed " + Thread.currentThread().getName())); // 1. 9.
+```
+
+```
+just elastic-1
+publish boundedElastic-1
+hello delayed parallel-1
+```
+
+위 예제의 동작은 다음과 같습니다.
+
+1. main thread가 subscribe 호출
+2. subscribeOn에 의해 subscription 및 위 방향으로 곧바로 Schedulers.elastic() 으로 전환
+3. elastic을 통해 emit hello
+4. 첫번째 doOnNext에서 elastic이 직접 'just' 출력
+5. publishOn에 의해 아래 방향으로 Schedulers.boundedElastic() 으로 전환
+6. 두번째 doOnNext에서 boundedElastic이이 데이터를 수신해서 'publish' 출력
+7. delayElements는 시간 연산자이므로 기본적으로 Schedulers.parallel()을 사용(publishOn)해서 아래 방향으로 전환
+8. 데이터 경로상에서(on the data path) subscribeOn는 아무것도 하지 않음 (동일한 스레드에서 신호를 전)
+9. 데이터 경로상에서 subscribe 내의 람다식은 데이터를 수신한 Thread에서 처리하므로 parallel이 'hello delayed' 출력
 
 ## Flux
 
