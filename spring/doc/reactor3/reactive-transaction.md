@@ -50,10 +50,10 @@ DatabaseClient라는 reactive client를 사용한다는 점이 다름
 
 ```java
 ConnectionFactory factory = …
-ReactiveTransactionManager tm = new R2dbcTransactionManager(factory);
+ReactiveTransactionManager tm = new R2dbcTransactionManager(factory);   // reactive transaction manager
 DatabaseClient db = DatabaseClient.create(factory);
 
-TransactionalOperator rxtx = TransactionalOperator.create(tm);
+TransactionalOperator rxtx = TransactionalOperator.create(tm);          
 
 Mono<Void> atomicOperation = db.execute()
   .sql("INSERT INTO person (name, age) VALUES('joe', 'Joe')")
@@ -61,5 +61,26 @@ Mono<Void> atomicOperation = db.execute()
   .then(db.execute()
     .sql("INSERT INTO contacts (name) VALUES('Joe')")
     .then())
-  .as(rxtx::transactional);
+  .as(rxtx::transactional);     // 모든 upstream publisher를 tx context와 연결
+```
+
+모든 upstream이 아닌 특정 publisher에만 tx를 적용하려면 아래와 같이 수행
+
+```java
+TransactionalOperator rxtx = TransactionalOperator.create(tm);
+
+Mono<Void> outsideTransaction = db.execute()
+  .sql("INSERT INTO person (name, age) VALUES('Jack', 31)")
+  .then();
+
+Mono<Void> insideTransaction = rxtx.execute(txStatus -> {           // 마지막에 as(rxtx::transactional) 과 동일
+  return db.execute()
+    .sql("INSERT INTO person (name, age) VALUES('Joe', 34)")
+    .fetch().rowsUpdated()
+    .then(db.execute()
+      .sql("INSERT INTO contacts (name) VALUES('Joe Black')")
+      .then());
+  }).then();
+
+Mono<Void> completion = outsideTransaction.then(insideTransaction);
 ```
